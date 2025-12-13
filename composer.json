@@ -1,0 +1,40 @@
+{
+    "name": "automattic/behat-wp-env-context",
+    "description": "Shared Behat FeatureContext for wp-env based WordPress plugin testing",
+    "type": "library",
+    "license": "GPL-2.0-or-later",
+    "keywords": [
+        "wordpress",
+        "behat",
+        "wp-env",
+        "testing",
+        "bdd"
+    ],
+    "authors": [
+        {
+            "name": "Automattic",
+            "homepage": "https://automattic.com/"
+        }
+    ],
+    "homepage": "https://github.com/Automattic/behat-wp-env-context",
+    "support": {
+        "issues": "https://github.com/Automattic/behat-wp-env-context/issues",
+        "source": "https://github.com/Automattic/behat-wp-env-context"
+    },
+    "require": {
+        "php": ">=8.0",
+        "behat/behat": "^3.7"
+    },
+    "require-dev": {
+        "automattic/vipwpcs": "^3",
+        "phpunit/phpunit": "^9"
+    },
+    "autoload": {
+        "psr-4": {
+            "Automattic\\BehatWpEnv\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
