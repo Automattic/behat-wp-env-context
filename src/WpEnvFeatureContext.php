@@ -5,7 +5,12 @@
  * Provides reusable WP-CLI command execution, output handling, database cleanup,
  * and standard step definitions for WordPress plugin testing with wp-env.
  *
+ * Portions of this code are derived from wp-cli/wp-cli-tests, which is:
+ * Copyright (C) WP-CLI Contributors
+ * Licensed under GPL-2.0-or-later
+ *
  * @package Automattic\BehatWpEnv
+ * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
@@ -564,5 +569,239 @@ abstract class WpEnvFeatureContext implements Context {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Assert the return code matches expected value.
+	 *
+	 * Useful for testing exit codes explicitly, especially in "I try" scenarios.
+	 *
+	 * @Then /^the return code should( not)? be (\d+)$/
+	 * @param string $not Optional "not" for negation.
+	 * @param int    $expected_code Expected exit code.
+	 * @return void
+	 */
+	public function the_return_code_should_be( string $not, int $expected_code ): void {
+		if (
+			( ! $not && $expected_code !== $this->exit_code ) ||
+			( $not && $expected_code === $this->exit_code )
+		) {
+			throw new RuntimeException(
+				sprintf(
+					"Expected return code %s%d, got %d.\nSTDOUT:\n%s\n\nSTDERR:\n%s",
+					$not ? 'not ' : '',
+					$expected_code,
+					$this->exit_code,
+					$this->output,
+					$this->error_output
+				)
+			);
+		}
+	}
+
+	/**
+	 * Assert that STDOUT is empty.
+	 *
+	 * @Then STDOUT should be empty
+	 * @return void
+	 */
+	public function stdout_should_be_empty(): void {
+		if ( ! empty( trim( $this->output ) ) ) {
+			throw new RuntimeException(
+				sprintf(
+					"Expected STDOUT to be empty, but got:\n%s",
+					$this->output
+				)
+			);
+		}
+	}
+
+	/**
+	 * Assert that STDERR is empty.
+	 *
+	 * @Then STDERR should be empty
+	 * @return void
+	 */
+	public function stderr_should_be_empty(): void {
+		if ( ! empty( trim( $this->error_output ) ) ) {
+			throw new RuntimeException(
+				sprintf(
+					"Expected STDERR to be empty, but got:\n%s",
+					$this->error_output
+				)
+			);
+		}
+	}
+
+	/**
+	 * Assert that STDOUT is not empty.
+	 *
+	 * @Then STDOUT should not be empty
+	 * @return void
+	 */
+	public function stdout_should_not_be_empty(): void {
+		if ( '' === trim( $this->output ) ) {
+			throw new RuntimeException( 'Expected STDOUT to not be empty, but it was empty.' );
+		}
+	}
+
+	/**
+	 * Assert that STDERR is not empty.
+	 *
+	 * @Then STDERR should not be empty
+	 * @return void
+	 */
+	public function stderr_should_not_be_empty(): void {
+		if ( '' === trim( $this->error_output ) ) {
+			throw new RuntimeException( 'Expected STDERR to not be empty, but it was empty.' );
+		}
+	}
+
+	/**
+	 * Assert that STDOUT matches a regex pattern.
+	 *
+	 * @Then /^STDOUT should( not)? match (((\/.+\/)|(#.+#))([a-z]+)?)$/
+	 * @param string $not Optional "not" for negation.
+	 * @param string $pattern Regex pattern (with delimiters and optional modifiers).
+	 * @return void
+	 */
+	public function stdout_should_match( string $not, string $pattern ): void {
+		$matches = (bool) preg_match( $pattern, $this->output );
+
+		if ( ( ! $not && ! $matches ) || ( $not && $matches ) ) {
+			throw new RuntimeException(
+				sprintf(
+					"Expected STDOUT to %smatch pattern %s.\nActual STDOUT:\n%s",
+					$not ? 'not ' : '',
+					$pattern,
+					$this->output
+				)
+			);
+		}
+	}
+
+	/**
+	 * Assert that STDERR matches a regex pattern.
+	 *
+	 * @Then /^STDERR should( not)? match (((\/.+\/)|(#.+#))([a-z]+)?)$/
+	 * @param string $not Optional "not" for negation.
+	 * @param string $pattern Regex pattern (with delimiters and optional modifiers).
+	 * @return void
+	 */
+	public function stderr_should_match( string $not, string $pattern ): void {
+		$matches = (bool) preg_match( $pattern, $this->error_output );
+
+		if ( ( ! $not && ! $matches ) || ( $not && $matches ) ) {
+			throw new RuntimeException(
+				sprintf(
+					"Expected STDERR to %smatch pattern %s.\nActual STDERR:\n%s",
+					$not ? 'not ' : '',
+					$pattern,
+					$this->error_output
+				)
+			);
+		}
+	}
+
+	/**
+	 * Assert that STDOUT contains valid JSON that includes expected values.
+	 *
+	 * @Then STDOUT should be JSON containing:
+	 * @param PyStringNode $expected Expected JSON subset.
+	 * @return void
+	 */
+	public function stdout_should_be_json_containing( PyStringNode $expected ): void {
+		$output         = $this->output;
+		$expected_text  = $this->replace_variables( trim( $expected->getRaw() ) );
+
+		$actual_json   = json_decode( $output, true );
+		$expected_json = json_decode( $expected_text, true );
+
+		if ( null === $actual_json ) {
+			throw new RuntimeException(
+				sprintf(
+					"STDOUT is not valid JSON.\nActual output:\n%s",
+					$output
+				)
+			);
+		}
+
+		if ( null === $expected_json ) {
+			throw new RuntimeException(
+				sprintf(
+					"Expected value is not valid JSON:\n%s",
+					$expected_text
+				)
+			);
+		}
+
+		if ( ! $this->json_contains( $actual_json, $expected_json ) ) {
+			throw new RuntimeException(
+				sprintf(
+					"STDOUT JSON does not contain expected values.\nExpected:\n%s\n\nActual:\n%s",
+					$expected_text,
+					$output
+				)
+			);
+		}
+	}
+
+	/**
+	 * Assert that a file or directory exists (or doesn't exist).
+	 *
+	 * @Then /^the (.+) (file|directory) should( not)? exist$/
+	 * @param string $path Path to file/directory (relative to RUN_DIR or absolute).
+	 * @param string $type Either "file" or "directory".
+	 * @param string $not Optional "not" for negation.
+	 * @return void
+	 */
+	public function the_file_should_exist( string $path, string $type, string $not ): void {
+		$path = $this->replace_variables( $path );
+
+		// If it's a relative path, make it relative to wp-content/plugins/{plugin-slug}.
+		if ( '/' !== $path[0] ) {
+			$plugin_slug = $this->get_plugin_slug();
+			$path        = "/var/www/html/wp-content/plugins/{$plugin_slug}/{$path}";
+		}
+
+		// Check existence via wp-env.
+		$check_command = 'directory' === $type ? "test -d {$path} && echo 'exists'" : "test -f {$path} && echo 'exists'";
+		$this->run_wp_cli_command( "eval 'system(\"" . addslashes( $check_command ) . "\");'", true );
+
+		$exists = false !== strpos( $this->output, 'exists' );
+
+		if ( ( ! $not && ! $exists ) || ( $not && $exists ) ) {
+			throw new RuntimeException(
+				sprintf(
+					"Expected %s '%s' to %sexist.",
+					$type,
+					$path,
+					$not ? 'not ' : ''
+				)
+			);
+		}
+	}
+
+	/**
+	 * Helper method to check if actual JSON contains all expected values.
+	 *
+	 * @param mixed $actual Actual JSON data (decoded).
+	 * @param mixed $expected Expected JSON data (decoded).
+	 * @return bool True if actual contains expected.
+	 */
+	private function json_contains( $actual, $expected ): bool {
+		if ( is_array( $expected ) ) {
+			foreach ( $expected as $key => $value ) {
+				if ( ! isset( $actual[ $key ] ) ) {
+					return false;
+				}
+				if ( ! $this->json_contains( $actual[ $key ], $value ) ) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		return $actual === $expected;
 	}
 }

@@ -148,10 +148,36 @@ All of these work out of the box:
 
 ### Then Steps
 
+**Output assertions:**
 - `Then STDOUT should be:` - Exact match assertion (multiline)
 - `Then STDOUT should contain:` - Substring match assertion (multiline)
 - `Then STDERR should be:` - Exact error match assertion (multiline)
 - `Then STDERR should contain:` - Substring error match assertion (multiline)
+
+**Empty/non-empty checks:**
+- `Then STDOUT should be empty` - Assert STDOUT has no output
+- `Then STDOUT should not be empty` - Assert STDOUT has output
+- `Then STDERR should be empty` - Assert STDERR has no output
+- `Then STDERR should not be empty` - Assert STDERR has output
+
+**Pattern matching:**
+- `Then STDOUT should match /pattern/` - Assert STDOUT matches regex
+- `Then STDOUT should not match /pattern/` - Assert STDOUT doesn't match regex
+- `Then STDERR should match /pattern/` - Assert STDERR matches regex
+- `Then STDERR should not match /pattern/` - Assert STDERR doesn't match regex
+
+**Exit codes:**
+- `Then the return code should be 0` - Assert command succeeded
+- `Then the return code should not be 0` - Assert command failed
+
+**JSON assertions:**
+- `Then STDOUT should be JSON containing:` - Assert JSON contains expected subset
+
+**File system checks:**
+- `Then the {path} file should exist` - Assert file exists
+- `Then the {path} file should not exist` - Assert file doesn't exist
+- `Then the {path} directory should exist` - Assert directory exists
+- `Then the {path} directory should not exist` - Assert directory doesn't exist
 
 ## Variable Substitution
 
@@ -309,8 +335,10 @@ GPL-2.0-or-later
 ## Credits
 
 This package consolidates best practices from:
-- Co-Authors Plus wp-env migration (Dec 2024)
-- WPCOM Legacy Redirector wp-env implementation (Jun 2023)
-- wp-cli/wp-cli-tests framework (deprecated)
+- [wp-cli/wp-cli-tests](https://github.com/wp-cli/wp-cli-tests) framework (GPL-2.0+) - step definitions and testing patterns
+- Co-Authors Plus wp-env migration (Dec 2024) - enhanced error parsing
+- WPCOM Legacy Redirector wp-env implementation (Jun 2023) - variable substitution patterns
+
+Portions of this code are derived from wp-cli/wp-cli-tests. See [CREDITS.md](CREDITS.md) for detailed attribution.
 
 Maintained by the [Automattic](https://automattic.com/) WordPress VIP team.
