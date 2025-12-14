@@ -22,7 +22,7 @@
         "source": "https://github.com/Automattic/behat-wp-env-context"
     },
     "require": {
-        "php": ">=8.0",
+        "php": ">=7.4",
         "behat/behat": "^3.7"
     },
     "require-dev": {

@@ -27,7 +27,7 @@ composer require --dev automattic/behat-wp-env-context
 
 ## Requirements
 
-- PHP 8.0+
+- PHP 7.4+
 - Node.js (for wp-env)
 - `@wordpress/env` installed globally or in `package.json`
 - `behat/behat` ^3.7
